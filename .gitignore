@@ -20,6 +20,7 @@ Build/*/*
 Debug/
 Release/
 Contents/
+RelWithDebInfo/
 verdata.*
 StepMania-debug
 stepmania-debug
@@ -87,6 +88,7 @@ PBProject/Hardware.plist
 *.vcxproj
 *.vcxproj.filters
 *.sln
+*.VC.db
 
 # Windows General Files
 Thumbs.db
@@ -192,3 +194,7 @@ BuildLog.htm
 *.pc
 *.d
 .vscode/
+
+# Custom
+/Crashes/
+/Songs-No/
