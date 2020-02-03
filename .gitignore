@@ -84,6 +84,9 @@ PBProject/Hardware.plist
 *.map
 *.aps
 *.res
+*.vcxproj
+*.vcxproj.filters
+*.sln
 
 # Windows General Files
 Thumbs.db
