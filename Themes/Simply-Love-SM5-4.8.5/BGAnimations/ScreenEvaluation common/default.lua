@@ -109,6 +109,9 @@ for player in ivalues(Players) do
 
 		-- was this player disqualified from ranking?
 		LoadActor("./PerPlayer/Disqualified.lua", player),
+
+		-- Thee Gauntlet
+		LoadActor("./PerPlayer/TheeGauntlet.lua", player),
 	}
 
 	-- add available Panes to the lower ActorFrame via a loop
