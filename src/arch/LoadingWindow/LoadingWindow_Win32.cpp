@@ -147,6 +147,8 @@ LoadingWindow_Win32::LoadingWindow_Win32()
 	m_hIcon = nullptr;
 	hwnd = CreateDialog( handle.Get(), MAKEINTRESOURCE(IDD_LOADING_DIALOG), nullptr, WndProc );
 	ASSERT( hwnd != nullptr );
+	SetForegroundWindow(hwnd);
+	LockSetForegroundWindow(LSFW_LOCK);
 	for( unsigned i = 0; i < 3; ++i )
 		text[i] = "ABC"; /* always set on first call */
 	SetText( "" );
@@ -155,8 +157,10 @@ LoadingWindow_Win32::LoadingWindow_Win32()
 
 LoadingWindow_Win32::~LoadingWindow_Win32()
 {
-	if( hwnd )
-		DestroyWindow( hwnd );
+	if (hwnd) {
+		LockSetForegroundWindow(LSFW_UNLOCK);
+		DestroyWindow(hwnd);
+	}
 	if( m_hIcon != nullptr )
 		DestroyIcon( m_hIcon );
 }

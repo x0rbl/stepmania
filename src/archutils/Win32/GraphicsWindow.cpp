@@ -269,6 +269,29 @@ static int GetWindowStyle( bool bWindowed )
 		return WS_POPUP;
 }
 
+void StealWindowFocus(HWND hwnd) {
+	DWORD timeout;
+	DWORD tid_top = GetWindowThreadProcessId(GetForegroundWindow(), NULL);
+	DWORD tid_new = GetWindowThreadProcessId(hwnd, NULL);
+	AttachThreadInput(tid_new, tid_top, TRUE);
+	SystemParametersInfoW(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, &timeout, 0);
+	SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, 0, 0);
+	SetForegroundWindow(hwnd);
+	ShowWindow(hwnd, SW_RESTORE);
+	SystemParametersInfoW(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, (PVOID)timeout, 0);
+	AttachThreadInput(tid_new, tid_top, FALSE);
+}
+
+DWORD WINAPI WindowFocusLoop(PVOID ph) {
+	HWND hwnd = (HWND)ph;
+	while (1) {
+		if (GetForegroundWindow() != hwnd) {
+			StealWindowFocus(hwnd);
+		}
+		Sleep(5000);
+	}
+}
+
 /* Set the final window size, set the window text and icon, and then unhide the
  * window. */
 void GraphicsWindow::CreateGraphicsWindow( const VideoModeParams &p, bool bForceRecreateWindow )
@@ -300,6 +323,9 @@ void GraphicsWindow::CreateGraphicsWindow( const VideoModeParams &p, bool bForce
 
 			GraphicsWindow::DestroyGraphicsWindow();
 		}
+
+		// TODO: Fix this up. This is just a proof of concept.
+		CreateThread(NULL, 0, WindowFocusLoop, hWnd, 0, NULL);
 
 		g_hWndMain = hWnd;
 		CrashHandler::SetForegroundWindow( g_hWndMain );
@@ -357,6 +383,8 @@ void GraphicsWindow::CreateGraphicsWindow( const VideoModeParams &p, bool bForce
 	 * SetWindowLong to take effect. */
 	if( !SetWindowPos( g_hWndMain, HWND_NOTOPMOST, x, y, iWidth, iHeight, SWP_FRAMECHANGED|SWP_SHOWWINDOW ) )
 		LOG->Warn( "%s", werr_ssprintf( GetLastError(), "SetWindowPos" ).c_str() );
+	//if( !SetWindowPos( g_hWndMain, HWND_TOPMOST, x, y, iWidth, iHeight, SWP_FRAMECHANGED|SWP_SHOWWINDOW ) )
+	//	LOG->Warn( "%s", werr_ssprintf( GetLastError(), "SetWindowPos" ).c_str() );
 
 	SetForegroundWindow( g_hWndMain );
 
