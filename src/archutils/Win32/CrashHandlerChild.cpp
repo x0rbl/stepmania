@@ -876,7 +876,7 @@ void ChildProcess()
 	// Now that we've done that, the process is gone. Don't use g_hParent.
 	CloseHandle( SymbolLookup::g_hParent );
 	SymbolLookup::g_hParent = nullptr;
-
+	return;
 	CrashDialog cd( sCrashReport, Data );
 #if defined(AUTOMATED_CRASH_REPORTS)
 	cd.Run( IDD_REPORT_CRASH );
