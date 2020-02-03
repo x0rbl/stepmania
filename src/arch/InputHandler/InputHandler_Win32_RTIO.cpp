@@ -27,6 +27,12 @@ const static float RTIO_INIT_TIME_MAX = 10.0;
 // so just exit the RTIO input loop.
 const static int RTIO_MAX_READ_FAILURES = 50;
 
+// If RTIO initializes successfully and there are no inputs in this amount of
+// time, the game will automatically exit. This feature should not be committed
+// to the Stepmania repo, as the shutdown is not graceful and this has limited
+// use beyond my machine.
+const static float AUTO_KILL_DELAY = 60.0 * 30; // 30 minutes
+
 REGISTER_INPUT_HANDLER_CLASS2(Rtio, Win32_RTIO);
 
 InputHandler_Win32_RTIO::InputHandler_Win32_RTIO()
@@ -147,6 +153,7 @@ void InputHandler_Win32_RTIO::InputThread()
 	RageTimer start_time;
 	std::vector<std::string> msgs;
 	int read_failures = 0;
+	last_input_.Touch();
 
 	while (!shutdown_) {
 		if (!rtio_.ReadMsgs(&msgs)) {
@@ -231,6 +238,10 @@ void InputHandler_Win32_RTIO::InputThread()
 				}
 			}
 		}
+
+		if (last_input_.Ago() > AUTO_KILL_DELAY) {
+			ExitProcess(0); // DO NOT COMMIT THIS CODE TO THE STEPMANIA REPO.
+		}
 	}
 }
 
@@ -251,6 +262,10 @@ void InputHandler_Win32_RTIO::HandleGameInput(const std::string &msg, const Rage
 	int menu2 = HexCharToInt(msg[4]);
 	int start1 = HexCharToInt(msg[5]);
 	int start2 = HexCharToInt(msg[6]);
+
+	if (pad1 != 0 || pad2 != 0 || menu1 != 0 || menu2 != 0 || start1 != 0 || start2 != 0) {
+		last_input_.Touch();
+	}
 
 	GAME_INPUT input_new;
 	input_new.P1_PadUp = (pad1 >> 3) & 1;
@@ -359,27 +374,33 @@ void InputHandler_Win32_RTIO::HandleOperatorInput(const std::string &msg, const 
 
 	if (input_new.TestSwitch != last_operator_input_.TestSwitch) {
 		ButtonPressed(DeviceInput(id, JOY_BUTTON_19, (float)input_new.TestSwitch, now));
+		last_input_.Touch();
 	}
 	if (input_new.SelectSwitch != last_operator_input_.SelectSwitch) {
 		ButtonPressed(DeviceInput(id, JOY_BUTTON_20, (float)input_new.SelectSwitch, now));
+		last_input_.Touch();
 	}
 	if (input_new.P1_InsertCoin != last_operator_input_.P1_InsertCoin) {
 		ButtonPressed(DeviceInput(id, JOY_BUTTON_21, (float)input_new.P1_InsertCoin, now));
 		if (input_new.P1_InsertCoin) {
 			counter_cycles_pending_++;
 		}
+		last_input_.Touch();
 	}
 	if (input_new.P2_InsertCoin != last_operator_input_.P2_InsertCoin) {
 		ButtonPressed(DeviceInput(id, JOY_BUTTON_22, (float)input_new.P2_InsertCoin, now));
 		if (input_new.P2_InsertCoin) {
 			counter_cycles_pending_++;
 		}
+		last_input_.Touch();
 	}
 	if (input_new.VolumeDown != last_operator_input_.VolumeDown) {
 		ButtonPressed(DeviceInput(id, JOY_BUTTON_23, (float)input_new.VolumeDown, now));
+		last_input_.Touch();
 	}
 	if (input_new.VolumeUp != last_operator_input_.VolumeUp) {
 		ButtonPressed(DeviceInput(id, JOY_BUTTON_24, (float)input_new.VolumeUp, now));
+		last_input_.Touch();
 	}
 /*
 	if (memcmp(&last_operator_input_, &input_new, sizeof(OPERATOR_INPUT)) != 0) {
