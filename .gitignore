@@ -89,6 +89,7 @@ PBProject/Hardware.plist
 *.vcxproj.filters
 *.sln
 *.VC.db
+*.VC.opendb
 
 # Windows General Files
 Thumbs.db
